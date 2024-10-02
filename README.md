@@ -8,5 +8,5 @@ db.createUser({
 })
 
 # รันโปรแกรม
-ืnpm start
+npm start
 
