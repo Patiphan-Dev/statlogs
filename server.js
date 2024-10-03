@@ -39,7 +39,7 @@ app.get("/statlogs", async (req, res) => {
     .db("StatlogDB")
     .collection("statlogs")
     .find({})
-    .sort({ Attribute: -1 })
+    .sort({ Attribute: 1 })
     .limit(10)
     .toArray();
   await client.close();
