@@ -118,7 +118,7 @@ function loadQueryTable() {
           // แสดงข้อความเมื่อไม่มีข้อมูล
           trHTML = '<tr><td colspan="6">No results found.</td></tr>';
         }
-        console.log(trHTML);
+        console.log(trHTML,);
         document.getElementById("mytable").innerHTML = trHTML;
       } else {
         console.error("Error fetching data:", this.statusText);

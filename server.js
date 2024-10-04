@@ -115,12 +115,10 @@ app.put("/statlogs/update", async (req, res) => {
       );
 
     if (result.modifiedCount === 0) {
-      return res
-        .status(404)
-        .send({
-          status: "error",
-          message: "Statlog not found or no changes made",
-        });
+      return res.status(404).send({
+        status: "error",
+        message: "Statlog not found or no changes made",
+      });
     }
 
     res.status(200).send({
@@ -237,16 +235,25 @@ app.get("/statlogs/:id", async (req, res) => {
 
 // Query by filter API: Search text from age Name
 app.get("/statlogs/age/:searchText", async (req, res) => {
-  const { params } = req;
-  const searchText = params.searchText;
-
+  const { searchText } = req.params;
   const client = new MongoClient(uri);
   try {
     await client.connect();
+
+    // แปลง searchText ให้เป็นตัวเลขเพื่อใช้ค้นหา
+    const ageQuery = parseInt(searchText, 10);
+
+    if (isNaN(ageQuery)) {
+      return res.status(400).send({
+        status: "error",
+        message: "Invalid age value. Please provide a valid number.",
+      });
+    }
+
     const objects = await client
       .db("StatlogDB")
       .collection("statlogs")
-      .find({ $text: { $search: searchText } })
+      .find({ age: ageQuery }) // ใช้ query โดยการค้นหาค่า age
       .sort({ age: 1 })
       .limit(10000)
       .toArray();
@@ -261,9 +268,10 @@ app.get("/statlogs/age/:searchText", async (req, res) => {
     res.status(500).send({
       status: "error",
       message: "Internal server error",
-      error: error.message, // เพิ่มข้อความข้อผิดพลาด
+      error: error.message,
     });
   } finally {
     await client.close();
   }
 });
+
