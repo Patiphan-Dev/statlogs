@@ -16,7 +16,7 @@ app.listen(port, () => {
 });
 
 const uri =
-  "mongodb://adminStatlog:passStatlog@localhost:27017/?authMechanism=DEFAULT&authSource=StatlogDB";
+  "mongodb://localhost:27017/?authMechanism=DEFAULT&authSource=StatlogDB";
 
 const connectDB = async () => {
   try {
@@ -39,8 +39,8 @@ app.get("/statlogs", async (req, res) => {
     .db("StatlogDB")
     .collection("statlogs")
     .find({})
-    .sort({ Attribute: 1 })
-    .limit(10)
+    .sort({ age: 1 })
+    .limit(10000)
     .toArray();
   await client.close();
   res.status(200).send(objects);
@@ -52,10 +52,20 @@ app.post("/statlogs/create", async (req, res) => {
   const client = new MongoClient(uri);
   await client.connect();
   await client.db("StatlogDB").collection("statlogs").insertOne({
-    Attribute: object.Attribute,
-    Description: object.Description,
-    Data_Type: object.Data_Type,
-    Domain: object.Domain,
+    age: object.age,
+    sex: object.sex,
+    cp: object.cp,
+    trestbps: object.trestbps,
+    chol: object.chol,
+    fbs: object.fbs,
+    restecg: object.restecg,
+    thalach: object.thalach,
+    exang: object.exang,
+    oldpeak: object.oldpeak,
+    slope: object.slope,
+    ca: object.ca,
+    thal: object.thal,
+    presence: object.presence,
   });
   await client.close();
   res.status(200).send({
@@ -78,7 +88,7 @@ app.put("/statlogs/update", async (req, res) => {
 
   try {
     await client.connect();
-    
+
     const result = await client
       .db("StatlogDB")
       .collection("statlogs")
@@ -86,16 +96,31 @@ app.put("/statlogs/update", async (req, res) => {
         { _id: new ObjectId(id) },
         {
           $set: {
-            Attribute: object.Attribute,
-            Description: object.Description,
-            Data_Type: object.Data_Type,
-            Domain: object.Domain,
+            age: object.age,
+            sex: object.sex,
+            cp: object.cp,
+            trestbps: object.trestbps,
+            chol: object.chol,
+            fbs: object.fbs,
+            restecg: object.restecg,
+            thalach: object.thalach,
+            exang: object.exang,
+            oldpeak: object.oldpeak,
+            slope: object.slope,
+            ca: object.ca,
+            thal: object.thal,
+            presence: object.presence,
           },
         }
       );
 
     if (result.modifiedCount === 0) {
-      return res.status(404).send({ status: "error", message: "Statlog not found or no changes made" });
+      return res
+        .status(404)
+        .send({
+          status: "error",
+          message: "Statlog not found or no changes made",
+        });
     }
 
     res.status(200).send({
@@ -155,7 +180,6 @@ app.delete("/statlogs/delete", async (req, res) => {
   }
 });
 
-
 // Read Limit API
 app.get("/statlogs/limit", async (req, res) => {
   const client = new MongoClient(uri);
@@ -164,7 +188,7 @@ app.get("/statlogs/limit", async (req, res) => {
     .db("StatlogDB")
     .collection("statlogs")
     .find({})
-    .sort({ Attribute: -1 })
+    .sort({ age: -1 })
     .limit(10000)
     .toArray();
   await client.close();
@@ -181,7 +205,7 @@ app.get("/statlogs/:id", async (req, res) => {
   }
 
   const client = new MongoClient(uri);
-  
+
   try {
     await client.connect();
     const object = await client
@@ -190,7 +214,9 @@ app.get("/statlogs/:id", async (req, res) => {
       .findOne({ _id: new ObjectId(id) });
 
     if (!object) {
-      return res.status(404).send({ status: "error", message: "Statlog not found" });
+      return res
+        .status(404)
+        .send({ status: "error", message: "Statlog not found" });
     }
 
     res.status(200).send({
@@ -209,38 +235,35 @@ app.get("/statlogs/:id", async (req, res) => {
   }
 });
 
-
-// Query by filter API: Search text from Attribute Name
-app.get("/statlogs/attribute/:searchText", async (req, res) => {
+// Query by filter API: Search text from age Name
+app.get("/statlogs/age/:searchText", async (req, res) => {
   const { params } = req;
   const searchText = params.searchText;
 
   const client = new MongoClient(uri);
   try {
-      await client.connect();
-      const objects = await client
-          .db("StatlogDB")
-          .collection("statlogs")
-          .find({ $text: { $search: searchText } })
-          .sort({ Attribute: 1 })
-          .limit(10)
-          .toArray();
+    await client.connect();
+    const objects = await client
+      .db("StatlogDB")
+      .collection("statlogs")
+      .find({ $text: { $search: searchText } })
+      .sort({ age: 1 })
+      .limit(10000)
+      .toArray();
 
-      res.status(200).send({
-          status: "ok",
-          searchText: searchText,
-          Statlog: objects,
-      });
+    res.status(200).send({
+      status: "ok",
+      searchText: searchText,
+      Statlog: objects,
+    });
   } catch (error) {
-      console.error("Error querying statlogs:", error);
-      res.status(500).send({
-          status: "error",
-          message: "Internal server error",
-          error: error.message, // เพิ่มข้อความข้อผิดพลาด
-      });
+    console.error("Error querying statlogs:", error);
+    res.status(500).send({
+      status: "error",
+      message: "Internal server error",
+      error: error.message, // เพิ่มข้อความข้อผิดพลาด
+    });
   } finally {
-      await client.close();
+    await client.close();
   }
 });
-
-
